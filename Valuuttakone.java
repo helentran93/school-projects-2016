@@ -1,51 +1,32 @@
-package valuuttakone;
-
-import java.util.ArrayList;
-import java.util.Arrays;
+package teht√§v√§t;
 
 public class Valuuttakone implements Valuuttakone_IF {
-	ValuuttaAccessObject vao;
 
-	ArrayList<Valuutta> valuutat = new ArrayList<Valuutta>();
-	private String[] nimet;
-
-	Valuutta euro, ruotsi, norja, usa;{
-
-	euro = new Valuutta("EUR", 1.0f, "Euroopan euro");
-	ruotsi = new Valuutta("SEK", 9.5f, "Ruotsin kruunu");
-	norja = new Valuutta("NOK", 8.25f, "Norjan kruunu");
-	usa = new Valuutta("USD", 1.35f, "Yhdysvaltain dollari");
-
-	valuutat.add(euro);
-	valuutat.add(ruotsi);
-	valuutat.add(norja);
-	valuutat.add(usa);
-	};
-
+	private ValuuttaAccessObject dao = new ValuuttaAccessObject();
+	private Valuutta valuutat[];
 
 	public Valuuttakone(){
-		nimet = new String[4];
-		for(int i = 0; i < valuutat.size(); i++){
-			Valuutta v = valuutat.get(i);
-			nimet[i] = v.getNimi();
-		}
+		valuutat = dao.readValuutat();
 	}
 
 // 	Testataan, tulostuuko taulukko oikein
 	@Override
 	public String[] getVaihtoehdot() {
-		System.out.println(Arrays.toString(nimet));	//nimet
-		return this.nimet;
+		String nimet[] = new String[valuutat.length];
+		for(int i = 0; i < nimet.length; i++){
+			nimet[i] = valuutat[i].getNimi();
+		}
+		return nimet;
 	}
 
 	@Override
-	public double muunna(int mist‰, int mihin, double m‰‰r‰) {
+	public double muunna(int mist√§, int mihin, double m√§√§r√§) {
 
-		double valinta1 = valuutat.get(mist‰).getVaihtokurssi();
-		double valinta2 = valuutat.get(mihin).getVaihtokurssi();
+		double valinta1 = valuutat[mist√§].getVaihtokurssi();
+		double valinta2 = valuutat[mihin].getVaihtokurssi();
 
-		double jakolasku = m‰‰r‰ /valinta1;
-		double kertolasku = valinta2 * jakolasku;
+		double jakolasku = m√§√§r√§ /valinta1;
+		double kertolasku = jakolasku * valinta2;
 
 		return kertolasku;
 	}
