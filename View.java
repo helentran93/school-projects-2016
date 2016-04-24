@@ -8,59 +8,111 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
-import lejos.robotics.mapping.LineMap;
+import lejos.robotics.geometry.Rectangle;
 
 /**
- * N‰kym‰ss‰ tuotetaan k‰yttˆliittym‰ k‰ytt‰j‰lle ja
- * kommunikoi k‰ytt‰j‰n kanssa tulosteiden ja syˆtteiden avulla.
+ * N√§kym√§ss√§ tuotetaan k√§ytt√∂liittym√§ k√§ytt√§j√§lle ja kommunikoi k√§ytt√§j√§n kanssa
+ * tulosteiden ja sy√∂tteiden avulla.
  *
  * @author Helen
+ * @version Java 8
  *
  */
-public class View extends Application implements View_IF{
+public class View extends Application implements View_IF {
 
 	/**
-	 *Muuttuja, joka on olio Controller_IF-luokasta.
+	 * Muuttuja, joka on olio Controller_IF-luokasta.
 	 */
 	private Controller_IF ohjain;
 	/**
-	 * Muuttujat, jotka edustavat olioina Button-luokasta.
-	 * Yksinkertaisella napinpainalluksella saadaan aikaan erilaisia toimintoja.
+	 * Olio Button-luokasta. Yksinkertaisella
+	 * napinpainalluksella saadaan aikaan luodaan yhteys robottiin.
 	 */
-	private Button nappi, nappi2, nappi3, nappi4, nappi5, nappi6;
+	private Button nappi;
 	/**
-	 * Muuttuja, joka edustaa oliona Text-luokasta.
-	 * Ilmestyy tekstin muodossa ikkunoihin ja tarvittaessa saattavat muuttaa
-	 * teksti‰ tilanteiden mukaan.
+	 * Olio Button-luokasta. Yksinkertaisella
+	 * napinpainalluksella saadaan aikaan luodaan yhteys robottiin.
 	 */
-	private Text teksti, ilmoitus;
+	private Button nappi2;
 	/**
-	 * Muuttuja, joka edustaa oliona N‰yttˆ-luokasta.
+	 * Olio Button-luokasta. Yksinkertaisella
+	 * napinpainalluksella asetetaan tarkastuspisteit√§.
 	 */
-	private N‰yttˆ pohja;
+	private Button nappi3;
 	/**
-	 * Muuttujia, jotka edustavat olioina TextField-luokasta. K‰ytt‰j‰ syˆtt‰‰
-	 * n‰ihin arvot, joiden kautta niit‰ voidaan k‰sitell‰.
+	 * Olio Button-luokasta. Yksinkertaisella
+	 * napinpainalluksella luodaan seini√§.
 	 */
-	private TextField x, y, x2, y2;
+	private Button nappi4;
+	/**
+	 * Olio Button-luokasta. Yksinkertaisella
+	 * napinpainalluksella tyhjennet√§√§n tekstikent√§t.
+	 */
+	private Button nappi5;
+	/**
+	 * Olio Button-luokasta. Yksinkertaisella
+	 * napinpainalluksella luodaan alue.
+	 */
+	private Button nappi6;
+	/**
+	 * Olio Text-luokasta. Ilmestyy tekstin muodossa
+	 * ikkunaan ja tarvittaessa saattaa muuttaa teksti√§ tilanteiden mukaan.
+	 */
+	private Text teksti;
+	/**
+	 * Olio Text-luokasta. Teksti ilmestyy ohjeena ikkunaan.
+	 */
+	private Text ilmoitus;
+	/**
+	 * Olio Text-luokasta. Ilmestyy tekstin muodossa
+	 * ikkunaan ja tarvittaessa saattaa muuttaa teksti√§ tilanteiden mukaan.
+	 */
+	private Text huomio;
+	/**
+	 * Olio N√§ytt√∂-luokasta. Sis√§lt√§√§ erilaisia metodeja,
+	 * jotka liittyv√§t taulun toteuttamiseen ja piirt√§miseen.
+	 */
+	private N√§ytt√∂ pohja;
+	/**
+	 * Olio TextField-luokasta. Tekstikentt√§√§n on sy√∂tett√§v√§ x-arvo.
+	 */
+	private TextField x;
+	/**
+	 * Olio TextField-luokasta. Tekstikentt√§√§n on sy√∂tett√§v√§ y-arvo.
+	 */
+	private TextField y;
+	/**
+	 * Olio TextField-luokasta. Tekstikentt√§√§n on sy√∂tett√§v√§ x2-arvo/leveyden arvo.
+	 */
+	private TextField x2;
+	/**
+	 * Olio TextField-luokasta. Tekstikentt√§√§n on sy√∂tett√§v√§ y2-arvo/korkeuden arvo.
+	 */
+	private TextField y2;
+	/**
+	 * N√§ytt√§√§ teksti√§ k√§ytt√§j√§lle ja se voi muuttua tilanteiden mukaan, mutta
+	 * k√§ytt√§j√§ ei voi muokata sit√§ suoraan.
+	 */
 	private Label update;
+	/**
+	 * Toimii nimikkeen√§ jokaiselle tekstikent√§lle.
+	 */
+	private Label arvoX, arvoY, arvoX2, arvoY2;
 
 	@Override
-	public void init(){
+	public void init() {
 		Model_IF malli = new Model();
 		ohjain = new Controller(this, malli);
 	}
@@ -77,231 +129,208 @@ public class View extends Application implements View_IF{
 		primaryStage.show();
 	}
 
+	private HBox createHBoxi() {
 
-	private HBox createHBoxi(){
+		Stage uusiStage = new Stage();
+		uusiStage.setTitle("Kartan luonti ja yhteyden muodostaminen");
+		pohja = new N√§ytt√∂(200, 200);
 
-		HBox hboxi = new HBox();
-		hboxi.setPadding(new Insets(100, 200, 100, 200));
-		hboxi.setSpacing(10);
+		HBox uusiHboxi = new HBox();
+		uusiHboxi.setPadding(new Insets(15, 5, 15, 5));
 
-		teksti = new Text("K‰ynnist‰ robotti ensin.");
-		teksti.setFont(Font.font("Calibri", FontWeight.NORMAL, 14));
-		teksti.setTextAlignment(TextAlignment.CENTER);
+		VBox kuvaBoxi = new VBox(3);
+		kuvaBoxi.setPadding(new Insets(29, 15, 29, 15));
 
-		nappi2 = new Button("Luo kartta");
-		nappi2.setAlignment(Pos.CENTER);
-		nappi2.setPrefSize(123, 5);
-		nappi2.setOnAction(new EventHandler<ActionEvent>(){
+		VBox nappiBoxi = new VBox(8);
+		nappiBoxi.setPadding(new Insets(50, 5, 26, 5));
+
+		GridPane pop = new GridPane();
+		pop.setVgap(4);
+		pop.setPadding(new Insets(5, 15, 5, 15));
+
+		pohja.l√§ht√∂Kohta();
+
+		pohja.setOnMouseClicked(new EventHandler<MouseEvent>() {
 
 			@Override
-			public void handle(ActionEvent event) {
-				Stage uusiStage = new Stage();
-				uusiStage.setTitle("Kartan luonti");
-				pohja = new N‰yttˆ(400, 320);
-
-				HBox uusiHboxi = new HBox();
-				uusiHboxi.setPadding(new Insets(15, 5, 15, 5));
-
-				VBox kuvaBoxi = new VBox();
-				kuvaBoxi.setPadding(new Insets(0, 5, 0, 5));
-				kuvaBoxi.getChildren().add(pohja);
-
-				GridPane pop = new GridPane();
-				pop.setVgap(5);
-				pop.setPadding(new Insets(10, 15, 10, 15));
-
-				nappi3 = new Button("Piirr‰ sein‰");
-				nappi3.setPrefSize(155, 5);
-				nappi3.setOnAction(new EventHandler<ActionEvent>(){
-
-					@Override
-					public void handle(ActionEvent event) {
-						try{
-							ohjain.sein‰nLuonti(Float.parseFloat(x.getText()), Float.parseFloat(y.getText()),
-									Float.parseFloat(x2.getText()), Float.parseFloat(y2.getText()));
-
-						} catch(Exception e){
-							JOptionPane.showMessageDialog(null, "Koordinaattien on oltava numeroina!");
-
-						}
-						x.clear();
-						y.clear();
-						x2.clear();
-						y2.clear();
-					}
-
-				});
-
-				nappi5 = new Button("Tyhjenn‰ taulu");
-				nappi5.setPrefSize(155, 5);
-				nappi5.setOnAction(new EventHandler<ActionEvent>(){
-
-					@Override
-					public void handle(ActionEvent event) {
-						try{
-							pohja.pyyhiTaulu();
-							ohjain.sein‰nTuho();
-						} catch(Exception e){
-							JOptionPane.showMessageDialog(null, "Taulu on pyyhitty.");
-						}
-					}
-
-				});
-
-				Label arvoX = new Label("x:n arvo");
-				pop.add(arvoX, 0, 0);
-
-				x = new TextField();
-				pop.add(x, 0, 1);
-
-				Label arvoY = new Label("y:n arvo");
-				pop.add(arvoY, 0, 2);
-
-				y = new TextField();
-				pop.add(y, 0, 3);
-
-				Label arvoX2 = new Label("x2:n arvo");
-				pop.add(arvoX2, 0, 4);
-
-				x2 = new TextField();
-				pop.add(x2, 0, 5);
-
-				Label arvoY2 = new Label("y2:n arvo");
-				pop.add(arvoY2, 0, 6);
-
-				y2 = new TextField();
-				pop.add(y2, 0, 7);
-
-				ilmoitus = new Text("Aseta koordinaatit.");
-				ilmoitus.setFont(Font.font("Calibri", FontWeight.NORMAL, 14));
-				ilmoitus.setTextAlignment(TextAlignment.CENTER);
-				pop.add(ilmoitus, 0, 8);
-
-
-				nappi4 = new Button("Tyhjenn‰");
-				nappi4.setPrefSize(155, 5);
-				nappi4.setOnAction(new EventHandler<ActionEvent>(){
-
-					@Override
-					public void handle(ActionEvent event) {
-						x.clear();
-						y.clear();
-						x2.clear();
-						y2.clear();
-					}
-
-				});
-
-				nappi = new Button("Yhteydenluonti");
-				nappi.setAlignment(Pos.CENTER);
-				nappi.setPrefSize(123, 5);
-				nappi.setOnAction(new EventHandler<ActionEvent>(){
-
-					@Override
-					public void handle(ActionEvent event){
-						Stage uusiStage = new Stage();
-						uusiStage.setTitle("Yhteydenluonti");
-						pohja = new N‰yttˆ(400, 320);
-
-						ohjain.kartanTuonti();
-
-						update = new Label();
-						update.setText("Valmiina...");
-
-						ilmoitus = new Text("Muistitko k‰ynnist‰‰ robotti ensin?");
-
-						nappi6 = new Button("Luo yhteys robottiin");
-						nappi6.setPrefSize(155, 5);
-						nappi6.setOnAction(new EventHandler<ActionEvent>(){
-
-							@Override
-							public void handle(ActionEvent event) {
-								try{
-									ohjain.yhteysStart();	//miten saada pallo liikkumaan robotin koordinaattien mukaisesti?
-								} catch(Exception e){
-									JOptionPane.showMessageDialog(null, "Robottiin ei saada yhteytt‰!");
-								}
-							}
-
-						});
-
-						HBox uusiHboxi = new HBox();
-						uusiHboxi.setPadding(new Insets(0, 5, 0, 5));
-
-						VBox kuvaBoxi = new VBox();
-						kuvaBoxi.setPadding(new Insets(10, 15, 10, 15));
-						kuvaBoxi.getChildren().add(pohja);
-
-						GridPane pop = new GridPane();
-						pop.setVgap(5);
-						pop.setHgap(10);
-						pop.setPadding(new Insets(10, 15, 10, 15));
-
-						pop.add(update, 0, 4);
-						pop.add(nappi6, 0, 5);
-						pop.add(ilmoitus, 0, 7);
-
-						uusiHboxi.getChildren().addAll(pop, kuvaBoxi);
-
-						Scene uusiScene = new Scene(uusiHboxi, 700, 350);
-						uusiStage.setScene(uusiScene);
-						uusiStage.show();
-					}
-				});
-
-				VBox nappiBoxi = new VBox(8);
-				nappiBoxi.setPadding(new Insets(26, 5, 26, 5));
-
-				nappiBoxi.getChildren().add(nappi3);
-				nappiBoxi.getChildren().add(nappi5);
-				nappiBoxi.getChildren().add(nappi4);
-				nappiBoxi.getChildren().add(nappi);
-
-				uusiHboxi.getChildren().addAll(pop, nappiBoxi, kuvaBoxi);
-
-				Scene uusiScene = new Scene(uusiHboxi, 700, 350);
-				uusiStage.setScene(uusiScene);
-				uusiStage.show();
+			public void handle(MouseEvent event) {
+				try {
+					ohjain.tarkistuspisteLuonti((float) event.getX(), (float) event.getY());
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(null, "Tarkistuspisteen asettaminen ei onnistunut!");
+				}
 			}
 
 		});
 
-		GridPane gridi = new GridPane();
-		gridi.setAlignment(Pos.CENTER);
-		gridi.setVgap(15);
+		nappi2 = new Button("Aseta tarkistuspiste");
+		nappi2.setPrefSize(155, 5);
+		nappi2.setOnAction(new EventHandler<ActionEvent>(){
 
-		gridi.add(teksti, 0, 1);
-		gridi.add(nappi2, 0, 2);
+			@Override
+			public void handle(ActionEvent event) {
+				try{
+					ohjain.tarkistuspisteLuonti(Float.parseFloat(x.getText()), Float.parseFloat(y.getText()));
+				} catch(Exception e){
+					JOptionPane.showMessageDialog(null, "Koordinaattien on oltava numeroina!");
+				}
+				x.clear();
+				y.clear();
+			}
 
+		});
 
-		hboxi.getChildren().addAll(gridi);
+		nappi3 = new Button("Piirr√§ sein√§");
+		nappi3.setPrefSize(155, 5);
+		nappi3.setOnAction(new EventHandler<ActionEvent>() {
 
-		return hboxi;
+			@Override
+			public void handle(ActionEvent event) {
+				try {
+					ohjain.sein√§nLuonti(Float.parseFloat(x.getText()), Float.parseFloat(y.getText()),
+							Float.parseFloat(x2.getText()), Float.parseFloat(y2.getText()));
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(null, "Koordinaattien on oltava numeroina!");
+				}
+				x.clear();
+				y.clear();
+				x2.clear();
+				y2.clear();
+			}
+
+		});
+
+		nappi5 = new Button("Tyhjenn√§ taulu");
+		nappi5.setPrefSize(155, 5);
+		nappi5.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				try {
+					pohja.pyyhiTaulu();
+					ohjain.kokoTuho();
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(null, "Taulun pyyhkiminen ep√§onnistui!");
+				}
+			}
+
+		});
+
+		arvoX = new Label("x:n arvo");
+		pop.add(arvoX, 0, 1);
+
+		x = new TextField();
+		pop.add(x, 0, 2);
+
+		arvoY = new Label("y:n arvo");
+		pop.add(arvoY, 0, 3);
+
+		y = new TextField();
+		pop.add(y, 0, 4);
+
+		arvoX2 = new Label("x2:n arvo");
+		pop.add(arvoX2, 0, 5);
+
+		x2 = new TextField();
+		pop.add(x2, 0, 6);
+
+		arvoY2 = new Label("y2:n arvo");
+		pop.add(arvoY2, 0, 7);
+
+		y2 = new TextField();
+		pop.add(y2, 0, 8);
+
+		ilmoitus = new Text("Aseta koordinaatit. Jos haluat m√§√§ritt√§√§ alueen,\n sijoita arvot x2- ja y2-kenttiin");
+		ilmoitus.setTextAlignment(TextAlignment.CENTER);
+		pop.add(ilmoitus, 0, 0);
+
+		ilmoitus = new Text("Muista k√§ynnist√§√§ robotti ennen yhteydenluontia.");
+		pop.add(ilmoitus, 0, 9);
+
+		teksti = new Text("Voit my√∂s asettaa tarkistuspisteit√§ robotille \nklikkaamalla taulua tai sy√∂tt√§m√§ll√§ arvot kentt√§√§n.");
+		teksti.setFont(Font.font("Calibri", FontWeight.NORMAL, 13));
+		pop.add(teksti, 0, 10);
+
+		nappi4 = new Button("Tyhjenn√§");
+		nappi4.setPrefSize(155, 5);
+		nappi4.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				x.clear();
+				y.clear();
+				x2.clear();
+				y2.clear();
+			}
+
+		});
+
+		update = new Label();
+		update.setText("Valmiina...");
+
+		nappi = new Button("Luo yhteys robottiin");
+		nappi.setAlignment(Pos.CENTER);
+		nappi.setPrefSize(155, 5);
+		nappi.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				try {
+					ohjain.yhteysStart();
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(null, "Robottiin ei saada yhteytt√§!");
+				}
+
+			}
+
+		});
+
+		nappi6 = new Button("Luo alue");
+		nappi6.setPrefSize(155, 5);
+		nappi6.setOnAction(new EventHandler<ActionEvent>(){
+
+			@Override
+			public void handle(ActionEvent event) {
+				try{
+					ohjain.alueenLuonti(Float.parseFloat(x2.getText()), Float.parseFloat(y2.getText()));
+				} catch(Exception e) {
+					JOptionPane.showMessageDialog(null, "Alueen korkeutta ja leveytt√§ ei voi m√§√§ritt√§√§ pienemm√§ksi kuin 0 ja suuremmaksi kuin 200!");
+				}
+				x.clear();
+				y.clear();
+				x2.clear();
+				y2.clear();
+			}
+
+		});
+
+		huomio = new Text();
+		ilmoitus = new Text("Taulun koko on 200 cm x 200 cm");
+
+		kuvaBoxi.getChildren().addAll(ilmoitus, pohja, huomio);
+		nappiBoxi.getChildren().addAll(nappi3, nappi2, nappi6, nappi4, nappi5, nappi, update);
+
+		uusiHboxi.getChildren().addAll(pop, nappiBoxi, kuvaBoxi);
+
+		return uusiHboxi;
 	}
-
 
 	@Override
 	public void setYhteys(boolean yhteys) {
-		if(yhteys == true){
+		if (yhteys == true) {
 			Vastaanottaja v = new Vastaanottaja(ohjain);
 			v.start();
 			update.setText("Yhteys muodostettu.");
-		}else{
+		} else {
 			update.setText("Yhteyden muodostaminen ei onnistunut.");
 		}
 	}
 
-	@Override
-	public void setKartta(Sein‰[] getSein‰) {
-		for(Sein‰ s: getSein‰){
-			pohja.piirr‰Sein‰(s.x, s.y, s.x2, s.y2);
+	public void setSein√§(Sein√§[] getSein√§) {
+		for (Sein√§ s : getSein√§) {
+			pohja.piirr√§Sein√§(s.getX(), s.getY(), s.getX2(), s.getY2());
 		}
-	}
-
-	public void setSein‰(Sein‰[] getSein‰){
-		for(Sein‰ s: getSein‰){
-			pohja.piirr‰Sein‰(s.x, s.y, s.x2, s.y2);
-		}
+		huomio.setText("Sein√§ on piirretty.");
 	}
 
 	@Override
@@ -310,23 +339,32 @@ public class View extends Application implements View_IF{
 	}
 
 	@Override
-	public void updateN‰yttˆ(float x, float y) {
-		pohja.piirr‰Paikannus(x, y);
+	public void updatePallo(float x, float y) {
+		pohja.piirr√§Paikannus(x, y);
 	}
 
-	public static void main(String[] args){
+	@Override
+	public void setPiste(Piste[] getPiste) {
+		for (Piste p : getPiste) {
+			pohja.piirr√§Piste(p.getX(), p.getY());
+		}
+		huomio.setText("Piste on piirretty.");
+	}
+
+	@Override
+	public void setTuho(Sein√§[] sein√§, Piste[] piste, Rectangle suorakulmio) {
+		huomio.setText("Taulu on pyyhitty!");
+		pohja.l√§ht√∂Kohta();
+	}
+
+	@Override
+	public void setAlue(Rectangle suorakulmio) {
+		pohja.piirr√§Alue(suorakulmio.width, suorakulmio.height);
+		huomio.setText("Alue on piirretty.");
+	}
+
+	public static void main(String[] args) {
 		launch(args);
 	}
-
-
-
-
-
-
-
-
-
-
-
 
 }
