@@ -1,136 +1,189 @@
 package mvc;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
+
+import javax.swing.JOptionPane;
+
 import lejos.robotics.geometry.Line;
 import lejos.robotics.geometry.Rectangle;
 import lejos.robotics.mapping.LineMap;
 
+
 /**
- * Luokassa toteutetaan karttojen
- * ja janojen koordinaattien k‰sittelyn sek‰ yhteyden luomisen robottiin.
+ * Luokassa toteutetaan karttojen ja janojen koordinaattien k√§sittelyn sek√§ yhteyden luomisen robottiin.
  *
  * @author Helen
+ * @version Java 8
  *
  */
 public class Model implements Model_IF{
 
-	ArrayList<Sein‰> sein‰t = new ArrayList<Sein‰>();
-	private float[] koordinaatit;
-	private float x, y, x2, y2;
+	/**
+	 * Lista, joka sis√§lt√§√§ pisteiden koordinaattien x- ja y-arvot.
+	 */
+	ArrayList<Piste> pisteet = new ArrayList<Piste>();
+	/**
+	 * Lista, joka sis√§lt√§√§ seinien koordinaattien x-, y-, x2- ja y2-arvot.
+	 */
+	ArrayList<Sein√§> sein√§t = new ArrayList<Sein√§>();
+	/**
+	 * Perustietotyypeille tarkoitettu tietovirta, johon l√§hetet√§√§n tiedot kartasta seinien ja alueen koon kanssa.
+	 */
 	private DataOutputStream dat = null;
+	/**
+	 * Olioille tarkoitettu tietovirta, johon l√§hetet√§√§n tiedot tarkistuspisteist√§.
+	 */
 	private ObjectOutputStream out = null;
+	/**
+	 * K√§ytt√∂liittym√§n ja robotin v√§linen k√§ytett√§v√§ kommunikoinnin p√§√§tepiste, joka avataan tiedonsiirron ajaksi ja suljetaan sen p√§√§tteeksi.
+	 */
 	private Socket s;
-
-
-	Line [] jana = new Line[5];{
-		jana [0] = new Line(200, -18, 30, -18);
-		jana [1] = new Line(18, -30, 200, -250);
-		jana [2] = new Line(92, 100, 92, -200);
-		jana [3] = new Line(200, -90, -200, -90);
-		jana [4] = new Line(0, 0, 0, -200);
-
-	}
-
-	ArrayList<int []> taulukotp = new ArrayList<int []>();
-
-	int[] pp1 = {90, 0};
-	int[] pp2 = {50, -35};
-	int[] pp3 = {15, -75};
-	int[] pp4 = {10, -5};
-	int[] pp5 = {-1, -1};
+	/**
+	 * Rectangle-oliota edustava suorakulmio, joka sis√§lt√§√§ tiedon koosta koordinaattien muodossa.
+	 */
+	private Rectangle suorakulmio;
+	/**
+	 * Muuttuja, joka muuttaa arvoaan true tai false joka kerta, kun alueen kokoa m√§√§ritet√§√§n uudestaan.
+	 */
+	boolean lippu = false;
 
 
 	@Override
-		public boolean luoYhteysRoboon() {
+	public boolean luoYhteysRoboon() {
 
-			LineMap kartta = new LineMap();
-			Rectangle suorakulmio = new Rectangle(0, 0, 202, -200);
-			kartta = new LineMap(jana, suorakulmio);
-
-			taulukotp.add(pp1);
-			taulukotp.add(pp2);
-			taulukotp.add(pp3);
-			taulukotp.add(pp4);
-			taulukotp.add(pp5);
-
-			try {
-				s = new Socket("10.0.1.1", 1111);
-				s.setReuseAddress(true);
-				out = new ObjectOutputStream(s.getOutputStream());
-				for(int [] a : taulukotp){
-					out.writeObject(a);
-				}
-				out.flush();
-				//out.close();
-				//s.close();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-
-			try {
-				//s = new Socket("10.0.1.1", 1111);
-				//s.setReuseAddress(true);
-				dat = new DataOutputStream(s.getOutputStream());
-				kartta.dumpObject(dat);
-				dat.flush();
-				dat.close();
-				s.close();
-
-			} catch (UnknownHostException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			return true;
-		}
-
-
-	public void luoSein‰(float x, float y, float x2, float y2) {
-		Sein‰ sein‰ = new Sein‰(x, y, x2, y2);
-		sein‰t.add(sein‰);
-		System.out.println("Sein‰n luonti onnistunut.");
-	}
-
-	public Sein‰[] getSein‰(){
-		Sein‰[] palautaSein‰ = new Sein‰[sein‰t.size()];
-		for(Sein‰ s: sein‰t){
-			System.out.println(s.x+", "+s.y+", "+s.x2+", "+s.y2);
-		}
-		return (Sein‰[])sein‰t.toArray(palautaSein‰);
-	}
-
-	@Override
-	public Sein‰[] poistaSein‰(Sein‰[] sein‰) {
-		Sein‰[]palautaSein‰ = new Sein‰[sein‰t.size()];
-		for(Sein‰ s: sein‰t){
-			sein‰t.clear();
-			System.out.println("Koordinaattien taulukko tyhjennetty.");
-		}
-
-		return (Sein‰[])sein‰t.toArray(palautaSein‰);
-	}
-
-
-	@Override
-	public LineMap luoKarttaRobolle(Sein‰[] sein‰) {
-		Line[] janat = new Line[sein‰t.size()];
+		Line[] janat = new Line[sein√§t.size()];
 		for(int i = 0; i < janat.length; i++){
-			{
-			janat[i] = new Line(sein‰t.get(i).getX(), sein‰t.get(i).getY(), sein‰t.get(i).getX2(), sein‰t.get(i).getY2());
-			}
+			janat[i] = new Line(sein√§t.get(i).getX(), sein√§t.get(i).getY(), sein√§t.get(i).getX2(), sein√§t.get(i).getY2());
 		}
+
 		LineMap kartta = new LineMap();
-		Rectangle suorakulmio = new Rectangle(0, 0, 400, 320);
+		if(lippu != true){
+			suorakulmio = new Rectangle(0, 0, 200, 200);
+		} else{
+			suorakulmio = new Rectangle(suorakulmio.x, suorakulmio.y, suorakulmio.width, suorakulmio.height);
+		}
 		kartta = new LineMap(janat, suorakulmio);
-		return kartta;
+
+		try {
+			s = new Socket("10.0.1.1", 1111);
+			s.setReuseAddress(true);
+			out = new ObjectOutputStream(s.getOutputStream());
+			for(int i = 0; i < pisteet.size(); i++){
+				int[] piste = {(int)pisteet.get(i).getX(), (int)pisteet.get(i).getY()};
+				out.writeObject(piste);
+			}
+			int[] lopetus = {-1, -1};
+			out.writeObject(lopetus);
+			out.flush();
+		} catch (IOException e1) {
+			JOptionPane.showMessageDialog(null, "Pisteiden l√§hett√§minen ep√§onnistui!");
+			e1.printStackTrace();
+		}
+
+		try {
+			dat = new DataOutputStream(s.getOutputStream());
+			kartta.dumpObject(dat);
+			dat.flush();
+			dat.close();
+			s.close();
+
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(null, "Kartan l√§hett√§minen ei onnistunut!");
+			e.printStackTrace();
+		}
+		return true;
 	}
 
+	@Override
+	public void luoSein√§(float x, float y, float x2, float y2) {
+		if(x <= 200 && y <= 200 && x2 <= 200 && y2 <= 200 && 0 <= x && 0 <= y && 0 <= x2 && 0 <= y2){
+			Sein√§ sein√§ = new Sein√§(x, y, x2, y2);
+			sein√§t.add(sein√§);
+			System.out.println("Sein√§n luonti onnistunut.");
+		} else{
+			JOptionPane.showMessageDialog(null, "Sein√§√§ ei voi sijoittaa taulun ulkopuolelle!");
+		}
+	}
+
+	@Override
+	public Sein√§[] getSein√§(){
+		Sein√§[] palautaSein√§ = new Sein√§[sein√§t.size()];
+		for(Sein√§ s: sein√§t){
+			System.out.println("Sein√§ luotu: "+s.getX()+", "+s.getY()+", "+s.getX2()+", "+s.getY2());
+		}
+		return (Sein√§[])sein√§t.toArray(palautaSein√§);
+	}
+
+	@Override
+	public Sein√§[] poistaSein√§(Sein√§[] sein√§) {
+		Sein√§[] palautaSein√§ = new Sein√§[sein√§t.size()];
+		for(int i = 0; i < palautaSein√§.length; i++){
+			sein√§t.clear();
+		}
+		System.out.println("Seinien koordinaattien taulukko tyhjennetty.");
+		return (Sein√§[])sein√§t.toArray(palautaSein√§);
+	}
+
+
+	@Override
+	public void luoPiste(float x, float y) {
+		if(x <= 200 && y <= 200 && 0 <= x && 0 <= y){
+			Piste piste = new Piste(x, y);
+			pisteet.add(piste);
+			System.out.println("Tarkistuspiste on asetettu.");
+		} else{
+			JOptionPane.showMessageDialog(null, "Pistett√§ ei voi sijoittaa taulun ulkopuolelle!");
+		}
+	}
+
+
+	@Override
+	public Piste[] getPiste() {
+		Piste[] palautaPisteet = new Piste[pisteet.size()];
+		for(Piste p: pisteet){
+			System.out.println("Tarkistuspiste kohdassa: "+p.getX()+", "+p.getY());
+		}
+		return (Piste[])pisteet.toArray(palautaPisteet);
+	}
+
+
+	@Override
+	public Piste[] poistaPiste(Piste[] piste) {
+		Piste[] palautaPiste = new Piste[pisteet.size()];
+		for(int i = 0; i < palautaPiste.length; i++){
+			pisteet.clear();
+		}
+		System.out.println("Pisteiden koordinaattien taulukko tyhjennetty.");
+		return (Piste[])pisteet.toArray(palautaPiste);
+	}
+
+
+	@Override
+	public Rectangle luoAlue(float w, float h) {
+		try{
+			if(w <= 200 & h <= 200 && 0 <= w && 0 <= h){
+				suorakulmio = new Rectangle(0, 0, w, h);
+				System.out.println("Alue on luotu: "+suorakulmio.x+", "+suorakulmio.y+", "+suorakulmio.width+", "+suorakulmio.height);
+				lippu = true;
+			}
+		} catch(Exception e){
+			JOptionPane.showMessageDialog(null, "Alueen luonti ei onnistunut.");
+		}
+		return suorakulmio;
+	}
+
+	@Override
+	public Rectangle alustaAlue(){
+		suorakulmio = new Rectangle(0, 0, 200, 200);
+		System.out.println("Alue alustettu.");
+		lippu = false;
+		return suorakulmio;
+	}
 	}
