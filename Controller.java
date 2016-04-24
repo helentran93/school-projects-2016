@@ -2,47 +2,67 @@ package mvc;
 
 
 /**
- * Ohjaimella on vastuu p‰‰tt‰‰ ohjauslogiikasta,
- * mit‰ pit‰‰ tehd‰ miss‰kin tilanteessa.
+ * Ohjaimella on vastuu p√§√§tt√§√§ ohjauslogiikasta,
+ * mit√§ pit√§√§ tehd√§ miss√§kin tilanteessa.
  *
  * @author Helen
+ * @version Java 8
  *
  */
 public class Controller implements Controller_IF{
 
-	private View_IF n‰kym‰;
+	/**
+	 * View-luokan rajapinta.
+	 */
+	private View_IF n√§kym√§;
+	/**
+	 * Model-luokan rajapinta.
+	 */
 	private Model_IF malli;
 
-	public Controller(View_IF n‰kym‰, Model_IF malli) {
-		this.n‰kym‰ = n‰kym‰;
+	/**
+	 * Controller-luokan konstruktori.
+	 * @param n√§kym√§ View-luokan rajapinta
+	 * @param malli Model-luokan rajapinta
+	 */
+	public Controller(View_IF n√§kym√§, Model_IF malli) {
+		this.n√§kym√§ = n√§kym√§;
 		this.malli = malli;
 	}
 
 
 	@Override
 	public void yhteysStart() {
-		n‰kym‰.setYhteys(malli.luoYhteysRoboon());
+		n√§kym√§.setYhteys(malli.luoYhteysRoboon());
 	}
 
-	@Override
-	public void kartanTuonti() {
-		n‰kym‰.setKartta(malli.getSein‰());
-	}
 
 	@Override
-	public void sein‰nLuonti(float x, float y, float x2, float y2) {
-		malli.luoSein‰(x, y, x2, y2);
-		n‰kym‰.setSein‰(malli.getSein‰());
-	}
-
-	@Override
-	public void sein‰nTuho() {
-		n‰kym‰.setSein‰(malli.poistaSein‰(malli.getSein‰()));
+	public void sein√§nLuonti(float x, float y, float x2, float y2) {
+		malli.luoSein√§(x, y, x2, y2);
+		n√§kym√§.setSein√§(malli.getSein√§());
 	}
 
 	public void updateLabels(float x, float y){
-		n‰kym‰.updateTextLabel(Float.toString(x)+" "+Float.toString(y));
-		n‰kym‰.updateN‰yttˆ(x, y);
+		n√§kym√§.updateTextLabel(Float.toString(x)+" "+Float.toString(y));
+		n√§kym√§.updatePallo(x, y);
 	}
+
+	public void tarkistuspisteLuonti(float x, float y){
+		malli.luoPiste(x, y);
+		n√§kym√§.setPiste(malli.getPiste());
+	}
+
+	@Override
+	public void kokoTuho() {
+		n√§kym√§.setTuho(malli.poistaSein√§(malli.getSein√§()), malli.poistaPiste(malli.getPiste()), malli.alustaAlue());
+	}
+
+	@Override
+	public void alueenLuonti(float w, float h) {
+		n√§kym√§.setAlue(malli.luoAlue(w, h));
+	}
+
+
 
 }
