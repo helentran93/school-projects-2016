@@ -130,9 +130,7 @@ public class View extends Application implements View_IF {
 	}
 
 	private HBox createHBoxi() {
-
-		Stage uusiStage = new Stage();
-		uusiStage.setTitle("Kartan luonti ja yhteyden muodostaminen");
+		
 		pohja = new Näyttö(200, 200);
 
 		HBox uusiHboxi = new HBox();
