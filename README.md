@@ -15,3 +15,4 @@ The contents of this repository consist of exercises and projects made in 2016 a
     * Builder: building a hamburger
     * Proxy: loading and showing images
     * Composite: constructing a computer with components
+    * State: Charmander's evolution example
